@@ -1,6 +1,8 @@
 // L14_Ex1_Inheritance.cpp
 #include <iostream>
 #include <cstring>
+#include <cstdio>
+#include <cstdlib>
 
 using namespace std;
 
@@ -9,14 +11,16 @@ class BaseSig{
 	private:
 		// neither derived classes nor other users
 		// can access private members
+		int readFile(char*);	//NEW method used to fill data
 	
 	protected:	// accessible by derived classes, not by other users.
 		int length;
 		int *raw_data;
+		int max;	//NEW variable to hold max of data file
 		
 	public:
 		BaseSig();		// default constructor.
-		BaseSig(int L);	// parametric constructor
+		BaseSig(char*);	// parametric constructor
 		~BaseSig();		// destructor
 		int getLength() { return length; };
 		int getRawValue(int pos);
@@ -35,11 +39,12 @@ BaseSig::BaseSig(){
 
 // Base class parametric constructor
 // Note that the data array is not being initialized (we could read from a file)
-BaseSig::BaseSig(int L){
-	length = L;
-	raw_data = new int[L];
-	if(raw_data == NULL)
-		cerr << "Error in memory allocation";
+BaseSig::BaseSig(char* filename){	//MODIFIED from int to char* for filename
+	//length = L;	//MODIFIED
+	//raw_data = new int[L];	//MODIFIED
+	//if(raw_data == NULL)
+	//	cerr << "Error in memory allocation";
+	readFile(filename);
 	numObjects++;
 }
 
@@ -58,6 +63,36 @@ int BaseSig::getRawValue(int pos) {
 		return(raw_data[pos]);
 }
 
+int BaseSig::readFile(char* filename){	//new method
+	FILE *fp;
+	fp=fopen(filename,"r");
+
+	if(fp==NULL)	//check if file is valid
+	{
+		std::cout << std::endl << filename << "could not be accessed\n";
+		return 1;
+	}
+
+	fscanf(fp,"%d %d",&length,&max);	//scan info from raw data
+	int tempCount=length;	//counter variable
+	int x=0;	//counter variable
+	
+	raw_data=new int[length];	//allocate memotry for array
+	if(raw_data == NULL)
+		cerr << "Error in memory allocation";
+	else{	
+		while(tempCount>0)	//fill array
+		{
+			fscanf(fp,"%d", &raw_data[x]);
+			x++;
+			tempCount--;
+		}
+	}
+	fclose(fp);
+
+	return 0;
+}
+
 void BaseSig::printInfo() {
 	cout << "\nLength: " << length << endl;
 }
@@ -71,7 +106,7 @@ class ExtendSig : public BaseSig{ // ExtendSig is derived from class BaseSig
 		double *data;
 		
 	public:
-		ExtendSig(int L);	//derived classes need a new constructor
+		ExtendSig(char*);	//derived classes need a new constructor
 		~ExtendSig();
 		
 		// define new member functions
@@ -84,12 +119,12 @@ class ExtendSig : public BaseSig{ // ExtendSig is derived from class BaseSig
 };
 
 // Derived class constructor. Note how the Base constructor is called.
-ExtendSig::ExtendSig(int L) : BaseSig(L) {
-	data = new double[L];
+ExtendSig::ExtendSig(char* filename) : BaseSig(filename) {	//MODIFIED from int to char* for filename
+	data = new double[length];
 	if(data == NULL)
 		cerr << "Error in memory allocation";
 	else{
-		for(int i = 0; i < L; i++)
+		for(int i = 0; i < length; i++)
 			data[i] = (double)raw_data[i];
 		average = getAverage();
 	}
@@ -141,15 +176,15 @@ void ExtendSig::printInfo() {
 
 // Main function. A few examples
 int main(){
-	BaseSig bsig1(5);
-	ExtendSig esig1(10);
+	BaseSig bsig1("Raw_data_01.txt");
+	ExtendSig esig1("Raw_data_02.txt");
 	cout << "# of objects created: " << bsig1.numObjects << endl
 		 << "# of objects created: " << esig1.numObjects << endl;
 	bsig1.printInfo();
 	esig1.printInfo();
 	cout << "--------------------------------------------" << endl;
 	
-	cout << endl << bsig1.getRawValue(3) << endl
+	cout << endl << bsig1.getRawValue(4) << endl
 		 << esig1.getRawValue(7) << endl
 		 << esig1.getValue(7) << endl;
 	cout << "--------------------------------------------" << endl;
