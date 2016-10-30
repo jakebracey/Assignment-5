@@ -94,7 +94,8 @@ int BaseSig::readFile(char* filename){	//new method
 }
 
 void BaseSig::printInfo() {
-	cout << "\nLength: " << length << endl;
+	cout << "\nBaseSig Info" << endl
+		 << "Length: " << length << endl;
 }
 // ------------------------------------------------------------------
 
@@ -169,31 +170,152 @@ double ExtendSig::getAverage() {
 
 // Redefined printInfo function for derived class
 void ExtendSig::printInfo() {
-	cout << "\nLength: " << length << endl
+	cout << "\nExtendSig Info" << endl
+		 << "Length: " << length << endl
 		 << "Average: " << average << endl;
 }
 // ------------------------------------------------------------------
+
+class ProcessedSignal : public BaseSig{
+	private: 
+		double average;		// add new data members
+		double *data;
+		double max;		//NEW
+		double min;		//NEW
+	public:
+		ProcessedSignal(char*);	//derived classes need a new constructor
+		~ProcessedSignal();
+		
+		// define new member functions
+		double getValue(int pos);
+		int setValue(int pos, double val);
+		double getAverage();
+		void max_min();		//NEW
+		void scaleFile(double scale);	//NEW
+		void normalizeFile(){scaleFile(1.0/max);}	//NEW
+		// redefine member function. Virtual keyword not needed
+		void printInfo();	// new standard: explicit "override" keyword can be used
+};
+
+ProcessedSignal::ProcessedSignal(char* filename) : BaseSig(filename) {	//MODIFIED from int to char* for filename
+	data = new double[length];
+	if(data == NULL)
+		cerr << "Error in memory allocation";
+	else{
+		for(int i = 0; i < length; i++)
+			data[i] = (double)raw_data[i];
+		average = getAverage();
+		max_min();
+	}
+}
+
+ProcessedSignal::~ProcessedSignal() {
+	//delete raw_data;
+	delete data;
+	cout << "Goodbye, ProcessedSignal." << endl;
+}
+
+double ProcessedSignal::getValue(int pos) {
+	if(pos < 0)			// invalid index
+		return(data[0]);
+	else if(pos >= length)	// invalid index
+		return(data[length-1]);	
+	else
+		return(data[pos]);
+}
+
+int ProcessedSignal::setValue(int pos, double val) {
+	if((pos < 0) || (pos >= length))
+		return(-1);	// invalid index
+	else {
+		data[pos] = val;
+		average = getAverage();
+		return(0);	// success
+	}
+}
+
+double ProcessedSignal::getAverage() {
+	if(length == 0)
+		return(0.0);
+	else {
+		double temp = 0.0;
+		for(int i = 0; i < length; i++)
+			temp += data[i];
+		return(temp/(double)length);
+	}
+}
+
+void ProcessedSignal::max_min(){
+/*	input:	integer array
+			number of integers in array
+	updates: max and min values in array*/
+
+	int tempCount=length;
+	max=data[0];
+	min=data[0];
+	while(tempCount>0)
+	{
+		max=(max>data[length-tempCount])? max:data[length-tempCount];
+		min=(min<data[length-tempCount])? min:data[length-tempCount];
+		tempCount--;
+	}
+}
+
+// Redefined printInfo function for derived class
+void ProcessedSignal::printInfo() {
+	cout << "\nProcessedSignal Info" << endl
+		 << "Length: " << length << endl
+		 << "Average: " << average << endl
+		 << "Max: " << max << endl
+		 << "Min: " << min << endl;
+}
+
+void ProcessedSignal::scaleFile(double scale){
+/*	input: 	value of scale
+	output: store alteredData*/
+
+	int x=0;
+	int count=length;
+
+	//scale each value
+	while (count>0)
+	{
+		data[x]*=scale;
+		x++;
+		count--;
+	}
+	
+	//update after changes
+	max_min();
+	average=getAverage();
+}
 
 // Main function. A few examples
 int main(){
 	BaseSig bsig1("Raw_data_01.txt");
 	ExtendSig esig1("Raw_data_02.txt");
+	
+	ProcessedSignal psig1("Raw_data_03.txt");
+	
 	cout << "# of objects created: " << bsig1.numObjects << endl
-		 << "# of objects created: " << esig1.numObjects << endl;
+		 << "# of objects created: " << esig1.numObjects << endl
+		 <<	"# of objects created: " << psig1.numObjects << endl;
+		 
 	bsig1.printInfo();
 	esig1.printInfo();
+	psig1.printInfo();
 	cout << "--------------------------------------------" << endl;
 	
 	cout << endl << bsig1.getRawValue(4) << endl
-		 << esig1.getRawValue(7) << endl
-		 << esig1.getValue(7) << endl;
+		 << psig1.getRawValue(7) << endl
+		 << psig1.getValue(7) << endl;
 	cout << "--------------------------------------------" << endl;
 	
-	cout << endl << esig1.setValue(7, 2.5) << endl
-		 << esig1.setValue(12, 2.0) << endl;
+	cout << endl << psig1.setValue(7, 2.5) << endl
+		 << psig1.setValue(12, 2.0) << endl;
 		 
-	cout << endl << esig1.getValue(7) << endl;
-	esig1.printInfo();
+	cout << endl << psig1.getValue(7) << endl;
+	psig1.printInfo();
 	cout << "--------------------------------------------" << endl;
 	
 	BaseSig *ptrB = &bsig1;	// pointer points to object of base class
