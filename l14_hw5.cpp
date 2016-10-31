@@ -107,10 +107,6 @@ class ExtendSig : public BaseSig{ // ExtendSig is derived from class BaseSig
 		double average;		// add new data members
 		double *data;
 		
-	protected:
-		double max;	//NEW variable to hold max of data file
-		double min;	//NEW variable to hold min of data file
-		
 	public:
 		ExtendSig(char*);	//derived classes need a new constructor
 		~ExtendSig();
@@ -119,7 +115,6 @@ class ExtendSig : public BaseSig{ // ExtendSig is derived from class BaseSig
 		double getValue(int pos);
 		int setValue(int pos, double val);
 		double getAverage();
-		void max_min();		//NEW
 
 		
 		// redefine member function. Virtual keyword not needed
@@ -160,7 +155,6 @@ int ExtendSig::setValue(int pos, double val) {
 	else {
 		data[pos] = val;
 		average = getAverage();
-		max_min();
 		return(0);	// success
 	}
 
@@ -184,21 +178,6 @@ void ExtendSig::printInfo() {
 		 << "Average: " << average << endl;
 }
 
-void ExtendSig::max_min(){
-/*	input:	integer array
-			number of integers in array
-	updates: max and min values in array*/
-
-	int tempCount=length;
-	max=data[0];
-	min=data[0];
-	while(tempCount>0)
-	{
-		max=(max>data[length-tempCount])? max:data[length-tempCount];
-		min=(min<data[length-tempCount])? min:data[length-tempCount];
-		tempCount--;
-	}
-}
 // ------------------------------------------------------------------
 
 class ProcessedSignal : public BaseSig{
@@ -331,6 +310,7 @@ class ProcessedSignal_v2 : public ExtendSig{
 		void normalizeFile(){scaleFile(1.0/max);}	//NEW
 		// redefine member function. Virtual keyword not needed
 		void printInfo();	// new standard: explicit "override" keyword can be used
+		void max_min();		//NEW
 		
 	
 };
@@ -382,6 +362,22 @@ void ProcessedSignal_v2::scaleFile(double scale){
 	average=getAverage();
 }
 
+void ProcessedSignal_v2::max_min(){
+/*	input:	integer array
+			number of integers in array
+	updates: max and min values in array*/
+
+	int tempCount=length;
+	max=data[0];
+	min=data[0];
+	while(tempCount>0)
+	{
+		max=(max>data[length-tempCount])? max:data[length-tempCount];
+		min=(min<data[length-tempCount])? min:data[length-tempCount];
+		tempCount--;
+	}
+}
+
 // Main function. A few examples
 int main(){
 	//strings to hold the input file names
@@ -429,17 +425,6 @@ int main(){
 	cout <<endl<<"Values of raw_data and data after update"<<endl<< psig1.getRawValue(7) << endl
 		 << psig1.getValue(7) << endl;
 	psig1.printInfo();
-	cout << "--------------------------------------------" << endl;
-	
-	//calls get value methods, calls set value method, and then displays the change
-	cout <<endl<<"Values of raw_data and data before update"<<endl<< psigv2.getRawValue(7) << endl
-		 << psigv2.getValue(7) << endl;
-	
-	cout << endl << psigv2.setValue(7, 3.5) << endl;
-		 
-	cout <<endl<<"Values of raw_data and data after update"<<endl<< psigv2.getRawValue(7) << endl
-		 << psigv2.getValue(7) << endl;
-	psigv2.printInfo();
 	cout << "--------------------------------------------" << endl;
 	
 	BaseSig *ptrB = &bsig1;	// pointer points to object of base class
