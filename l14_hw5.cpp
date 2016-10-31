@@ -1,4 +1,6 @@
-// L14_Ex1_Inheritance.cpp
+// Jacob Bracey
+// Thomas Gibbons
+
 #include <iostream>
 #include <cstring>
 #include <cstdio>
@@ -418,13 +420,13 @@ int main(){
 	cout << "--------------------------------------------" << endl;
 	//calls get value methods, calls set value method, and then displays the change
 	cout <<endl<<"Values of raw_data and data before update"<<endl<< psig1.getRawValue(7) << endl
-		 << psig1.getValue(7) << endl;
+		 << psig1.getValue(7) << endl;	//shows the original value and normalized value
 	
-	cout << endl << psig1.setValue(7, 2.5) << endl;
+	cout << endl << psig1.setValue(7, 2.5) << endl;	//changes the value in normalized data
 		 
 	cout <<endl<<"Values of raw_data and data after update"<<endl<< psig1.getRawValue(7) << endl
 		 << psig1.getValue(7) << endl;
-	psig1.printInfo();
+	psig1.printInfo();	//new max since 2.5 is higher than the normalized 1
 	cout << "--------------------------------------------" << endl;
 	
 	BaseSig *ptrB = &bsig1;	// pointer points to object of base class
@@ -432,10 +434,15 @@ int main(){
 	ptrB->printInfo();		// which version is used?
 	refB.printInfo();		// which version is used?
 	
-	ptrB = &esig1;	// pointer points to the base part of the object of derived class
-	BaseSig &refB2 = esig1; // reference bound to the base part of esig1
+	ptrB = &psig1;	// pointer points to the base part of the object of derived class
+	BaseSig &refB2 = psig1; // reference bound to the base part of psig1
 	ptrB->printInfo();		// which version is used?
 	refB2.printInfo();		// which version is used?
+	
+	ptrB = &psigv2;	// pointer points to the base part of the object of derived class
+	BaseSig &refB3 = psigv2; // reference bound to the base part of psigv2
+	ptrB->printInfo();		// which version is used?
+	refB3.printInfo();		// which version is used?
 	cout << "--------------------------------------------" << endl;
 	return 0;
 }
